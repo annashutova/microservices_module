@@ -1,0 +1,58 @@
+services:
+  balancer:
+    image: nginx:1.27.2-alpine3.20
+    restart: unless-stopped
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx:/etc/nginx/templates
+    depends_on:
+      - rpc-gateway
+      - static-gateway
+
+  rpc-gateway:
+    build:
+      dockerfile: docker/rpc/Dockerfile
+      context: .
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" ]
+    ports:
+      - "8001:8000"
+    depends_on:
+      - remove_duplicates
+      - reverse_list
+
+  static-gateway:
+    build:
+      dockerfile: docker/static/Dockerfile
+      context: .
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" ]
+    ports:
+      - "8002:8000"
+
+  remove_duplicates:
+    build:
+      dockerfile: docker/services/remove_duplicates/Dockerfile
+      context: .
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" ]
+    ports:
+      - "8003:8000"
+
+  reverse_list:
+    build:
+      dockerfile: docker/services/reverse_list/Dockerfile
+      context: .
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" ]
+    ports:
+      - "8004:8000"
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"

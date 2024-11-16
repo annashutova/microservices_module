@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'rpc-gateway'
+    static_configs:
+      - targets: ['rpc-gateway:8000']
+
+  - job_name: 'static-gateway'
+    static_configs:
+      - targets: [ 'static-gateway:8000' ]
+
+  - job_name: 'remove_duplicates'
+    static_configs:
+      - targets: ['remove_duplicates:8000']
+
+  - job_name: 'reverse_list'
+    static_configs:
+      - targets: ['reverse_list:8000']
